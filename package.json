@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "axios": "^0.27.2",
+    "ws": "^8.8.0"
+  },
+  "name": "ccobackend",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "devDependencies": {
+    "@types/ws": "^8.5.3"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build": "tsc",
+    "test": "tsc && node ./dist/index.js"
+  },
+  "author": "RedBigz",
+  "license": "MIT",
+  "description": "Backend of cookieclickeronline"
+}

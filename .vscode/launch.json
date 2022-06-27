@@ -1,0 +1,16 @@
+{
+	"configurations": [
+		{
+			"command": "npm test",
+			"name": "Test",
+			"request": "launch",
+			"type": "node-terminal"
+		},
+		{
+			"command": "npm run build",
+			"name": "Build",
+			"request": "launch",
+			"type": "node-terminal"
+		}
+	]
+}
