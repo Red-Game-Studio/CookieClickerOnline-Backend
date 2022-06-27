@@ -22,6 +22,7 @@ const events: string[] = [
 	"matchsearch",
 	"cancelmatchsearch",
 	"sendGameData",
+	"deleteServer"
 ];
 
 const players: Map<string, User> = new Map()
