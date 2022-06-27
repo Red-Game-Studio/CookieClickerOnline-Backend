@@ -6,6 +6,13 @@ export interface Message {
 }
 
 export interface User {
-	uuid: string; // Shown on screen if you're a guest. Example: Guest#b390b50a-43c3-451c-9ef4-4a83ae4f14d5
+	uuid: string; // Shown on screen if you're a guest. Example: Guest#b390b50a
 	discord?: DiscordUser; // Discord account details (username, hash, id, your email address). Some details are displayed on screen. Example: RedBigz#1337
+}
+
+export interface Server {
+	name: string;
+	uuid: string;
+	modded?: boolean;
+	players: Map<string, User>;
 }
