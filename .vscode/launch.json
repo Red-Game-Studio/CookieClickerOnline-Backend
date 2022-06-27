@@ -2,7 +2,7 @@
 	"configurations": [
 		{
 			"command": "npm test",
-			"name": "Test",
+			"name": "Test Backend",
 			"request": "launch",
 			"type": "node-terminal"
 		},
