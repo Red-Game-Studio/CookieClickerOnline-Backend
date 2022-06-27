@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 import { randomUUID } from "crypto";
 import * as discord from "./discord_auth";
 import type { DiscordAccount, DiscordUser } from "./discord_types";
-import type { User, Message, Server } from "./index_types";
+import type { User, Message, Server, Party } from "./index_types";
 
 // @ts-ignore: parseInt should not raise an error when given undefined.
 const PORT: number = 3000 || parseInt(process.env.PORT);
@@ -22,19 +22,28 @@ const events: string[] = [
 	"matchsearch",
 	"cancelmatchsearch",
 	"sendGameData",
-	"deleteServer"
+	"deleteServer",
+	"joinParty",
+	"leaveParty",
+	"ping"
 ];
 
-const players: Map<string, User> = new Map()
+const players: Map<string, User> = new Map();
+const sockets: Map<string, ws.WebSocket> = new Map();
 
 server.on("connection", (socket: ws.WebSocket) => {
 	let authentication: DiscordAccount | undefined; // null = Guest
 	let sessionID: string = randomUUID();
 	let discordUser: DiscordUser | undefined;
 
-	let user: User = { uuid: sessionID };
+	let user: User = {
+		uuid: sessionID,
+		partyHost: true,
+		partyUUID: randomUUID()
+	};
 
 	players.set(sessionID, user);
+	sockets.set(sessionID, socket);
 
 	console.log(`LOG: ${sessionID} connected.`);
 
@@ -85,18 +94,19 @@ server.on("connection", (socket: ws.WebSocket) => {
 	socket.on("close", (): void => {
 		console.log(`LOG: ${sessionID} disconnected.`);
 		players.delete(sessionID);
+		sockets.delete(sessionID);
 		CCO.emit("exit", authentication, sessionID);
 	});
 });
 
 CCO.on("error", (err: string, code: number | string): void => {
 	console.log(`ERROR: ${err} (Code ${code})`);
-})
+});
 
 // Third-Party Server Code
 
 const thirdPartyServers: Map<string, Server> = new Map();
-const playerStatus: Map<string, string | null> = new Map();
+const playerStatus: Map<string, string> = new Map();
 
 CCO.on("join", (gid: string, auth: DiscordAccount | undefined, sid: string, socket: ws.WebSocket) => {
 	let server = thirdPartyServers.get(gid); // Get
@@ -109,9 +119,17 @@ CCO.on("join", (gid: string, auth: DiscordAccount | undefined, sid: string, sock
 	let user: User | undefined = players.get(sid);
 	if (!user) return;
 
-	if (!server.players.has(sid)) {
-		server.players.set(sid, user);
-	}
+	if (!server.players.has(sid)) return;
+
+	let s = server.host;
+	if (s) s.send(JSON.stringify(
+		{
+			type: "playerJoin",
+			body: user
+		}
+	));
+
+	server.players.set(sid, user);
 
 	thirdPartyServers.set(gid, server); // Set
 
@@ -126,21 +144,72 @@ CCO.on("leave", (body: any, auth: DiscordAccount, sid: string, socket: ws.WebSoc
 	let server = thirdPartyServers.get(gid); // Get
 	if (!server) return;
 
-	if (!server.players.has(sid)) return;
+	let user = server.players.get(sid);
+	if (!user) return;
 
+	// Delete all data.
 	server.players.delete(sid);
+	playerStatus.delete(sid);
 
 	thirdPartyServers.set(gid, server); // Set
-
-	playerStatus.set(gid, null);
 
 	if (socket) {
 		let message = { type: "success" };
 		socket.send(JSON.stringify(message));
+
+		let s = server.host;
+		if (s) s.send(JSON.stringify(
+			{
+				type: "playerLeave",
+				body: user
+			}
+		));
 	}
 });
 
-// If socket closes
+// If the socket closes, leave the server and delete all data associated with the player's session.
 CCO.on("exit", (auth: DiscordAccount, sid: string) => {
-	CCO.emit("leave", undefined, auth, sid, undefined);
-})
+	CCO.emit("leave", undefined, auth, sid, undefined); // Leave the server.
+});
+
+// Parties
+
+const parties: Map<string, Party> = new Map();
+
+CCO.on("joinParty", (pid: string, auth: DiscordAccount, sid: string, socket: ws.WebSocket) => {
+	let party = parties.get(pid);
+	if (!party) return;
+
+	// Stop the function if player is already in the party or if the owner is joining their own party.
+	if (party.players.has(sid)) return;
+	if (party.host == socket) return;
+
+	// Remove party host permission
+	let player = players.get(sid);
+	if (!player) return;
+
+	player.partyHost = false;
+	player.partyUUID = undefined;
+
+	players.set(sid, player);
+
+	// Add to party
+	party.players.set(sid, player);
+
+	// Send information to everyone in the party
+	party.players.forEach((usr: User, id: string) => {
+		if (id != sid) {
+			let socket = sockets.get(id);
+			if (socket) socket.send(JSON.stringify(
+				{
+					type: "partyJoin",
+					body: player
+				}
+			))
+		}
+	});
+
+	// Send success message
+	let message = { type: "success" };
+	socket.send(JSON.stringify(message));
+});

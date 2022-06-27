@@ -1,4 +1,5 @@
 import { DiscordUser } from "./discord_types";
+import { WebSocket } from "ws";
 
 export interface Message {
 	type: string; // Message type
@@ -6,8 +7,10 @@ export interface Message {
 }
 
 export interface User {
-	uuid: string; // Shown on screen if you're a guest. Example: Guest#b390b50a
-	discord?: DiscordUser; // Discord account details (username, hash, id, your email address). Some details are displayed on screen. Example: RedBigz#1337
+	uuid: string;
+	discord?: DiscordUser; // Discord username, hash, avatar and user id.
+	partyHost?: boolean;
+	partyUUID?: string;
 }
 
 export interface Server {
@@ -15,4 +18,11 @@ export interface Server {
 	uuid: string;
 	modded?: boolean;
 	players: Map<string, User>;
+	host: WebSocket;
+}
+
+export interface Party {
+	players: Map<string, User>;
+	uuid: string;
+	host: WebSocket;
 }
