@@ -1,0 +1,21 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy to Glitch
+
+on: 
+ pull_request:
+  types: [closed] 
+jobs:
+  repo-sync:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - name: repo-sync
+      uses: wei/git-sync@v1
+      env:
+        SOURCE_REPO: "https://github.com/Red-Game-Studio/CookieClickerOnline-Backend.git"
+        SOURCE_BRANCH: "main"
+        DESTINATION_REPO: ${{ secrets.GLITCH_URL }}
+        DESTINATION_BRANCH: "master"
+      with:
+        args: $SOURCE_REPO $SOURCE_BRANCH $DESTINATION_REPO $DESTINATION_BRANCH
