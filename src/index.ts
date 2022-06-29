@@ -10,7 +10,9 @@ import type { User, Message, Server, Party } from "./index_types";
 const PORT: number = 3000 || parseInt(process.env.PORT);
 
 // Create Server
-const server: ws.Server = new ws.Server({ port: PORT });
+const server: ws.Server = new ws.Server({ port: PORT }, () => {
+	console.log(`LOG: Server started on port ${PORT}`);
+});
 
 // Base Code
 const CCO: EventEmitter = new EventEmitter();
