@@ -4,7 +4,9 @@ name: Deploy to Glitch
 
 on: 
  pull_request:
-  types: [closed] 
+  types: [closed]
+ workflow_dispatch:
+  
 jobs:
   repo-sync:
     if: github.event.pull_request.merged == true
