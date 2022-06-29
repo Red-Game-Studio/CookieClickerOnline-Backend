@@ -9,8 +9,6 @@ export interface Message {
 export interface User {
 	uuid: string;
 	discord?: DiscordUser; // Discord username, hash, avatar and user id.
-	partyHost?: boolean;
-	partyUUID?: string;
 }
 
 export interface Server {
@@ -25,4 +23,5 @@ export interface Party {
 	players: Map<string, User>;
 	uuid: string;
 	host: WebSocket;
+	hostUser: User;
 }

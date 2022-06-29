@@ -37,9 +37,7 @@ server.on("connection", (socket: ws.WebSocket) => {
 	let discordUser: DiscordUser | undefined;
 
 	let user: User = {
-		uuid: sessionID,
-		partyHost: true,
-		partyUUID: randomUUID()
+		uuid: sessionID
 	};
 
 	players.set(sessionID, user);
@@ -117,9 +115,25 @@ CCO.on("join", (gid: string, auth: DiscordAccount | undefined, sid: string, sock
 	}
 
 	let user: User | undefined = players.get(sid);
-	if (!user) return;
+	if (!user) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User does not exist."
+			}
+		));
+		return;
+	}
 
-	if (!server.players.has(sid)) return;
+	if (server.players.has(sid)) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User is already playing on the specified server."
+			}
+		));
+		return;
+	}
 
 	let s = server.host;
 	if (s) s.send(JSON.stringify(
@@ -139,13 +153,37 @@ CCO.on("join", (gid: string, auth: DiscordAccount | undefined, sid: string, sock
 
 CCO.on("leave", (body: any, auth: DiscordAccount, sid: string, socket: ws.WebSocket | undefined) => {
 	let gid = playerStatus.get(sid);
-	if (!gid) return;
+	if (!gid) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User is not currently in a game/match."
+			}
+		));
+		return;
+	}
 
 	let server = thirdPartyServers.get(gid); // Get
-	if (!server) return;
+	if (!server) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "Server does not exist."
+			}
+		));
+		return;
+	};
 
 	let user = server.players.get(sid);
-	if (!user) return;
+	if (!user) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User is not currently in a game/match."
+			}
+		));
+		return;
+	}
 
 	// Delete all data.
 	server.players.delete(sid);
@@ -176,22 +214,46 @@ CCO.on("exit", (auth: DiscordAccount, sid: string) => {
 
 const parties: Map<string, Party> = new Map();
 
+CCO.on("login", (auth: DiscordAccount, sid: string) => {
+
+});
+
+// Party Joining
 CCO.on("joinParty", (pid: string, auth: DiscordAccount, sid: string, socket: ws.WebSocket) => {
 	let party = parties.get(pid);
-	if (!party) return;
+	if (!party) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "Party does not exist."
+			}
+		));
+		return;
+	}
 
-	// Stop the function if player is already in the party or if the owner is joining their own party.
-	if (party.players.has(sid)) return;
-	if (party.host == socket) return;
+	// Stop the function if player is already in the party..
+	if (party.players.has(sid)) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User is already in the party."
+			}
+		));
+		return;
+	}
+	if (party.host == socket) {
+		if (socket) socket.send(JSON.stringify(
+			{
+				type: "error",
+				body: "User is already in the party."
+			}
+		));
+		return;
+	};
 
-	// Remove party host permission
+	// Stop the function if the user does not exist (just in case)
 	let player = players.get(sid);
 	if (!player) return;
-
-	player.partyHost = false;
-	player.partyUUID = undefined;
-
-	players.set(sid, player);
 
 	// Add to party
 	party.players.set(sid, player);
@@ -212,4 +274,14 @@ CCO.on("joinParty", (pid: string, auth: DiscordAccount, sid: string, socket: ws.
 	// Send success message
 	let message = { type: "success" };
 	socket.send(JSON.stringify(message));
+});
+
+// Ping
+
+CCO.on("ping", (pid: string, auth: DiscordAccount, sid: string, socket: ws.WebSocket) => {
+	socket.send(JSON.stringify(
+		{
+			"type": "ping"
+		}
+	));
 });
