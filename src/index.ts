@@ -217,7 +217,7 @@ CCO.on("exit", (auth: DiscordAccount, sid: string) => {
 const parties: Map<string, Party> = new Map();
 
 CCO.on("login", (auth: DiscordAccount, sid: string) => {
-
+	
 });
 
 // Party Joining
