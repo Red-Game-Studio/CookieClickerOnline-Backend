@@ -20,5 +20,9 @@
   "author": "RedBigz",
   "license": "MIT",
   "description": "Backend of Cookie Clicker Online.",
-  "keywords": ["cco", "node", "multiplayer"]
+  "keywords": [
+    "cco",
+    "node",
+    "multiplayer"
+  ]
 }
