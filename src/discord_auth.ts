@@ -1,4 +1,6 @@
 import type { DiscordAccount, DiscordUser } from "./discord_types";
+
+// @ts-ignore
 import * as axios from "axios";
 
 function sanitiseUser(user: DiscordUser): DiscordUser {

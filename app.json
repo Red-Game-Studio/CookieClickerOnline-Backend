@@ -1,0 +1,6 @@
+{
+	"name": "Cookie Clicker Online Backend",
+	"description": "The Backend for Cookie Clicker Online.",
+	"repository": "https://github.com/Red-Game-Studio/CookieClickerOnline-Backend",
+	"keywords": ["cco", "node", "multiplayer"]
+}

@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "axios": "^0.27.2",
+    "express": "^4.18.1",
     "ws": "^8.8.0"
   },
   "name": "ccobackend",
@@ -18,5 +19,6 @@
   },
   "author": "RedBigz",
   "license": "MIT",
-  "description": "Backend of cookieclickeronline"
+  "description": "Backend of Cookie Clicker Online.",
+  "keywords": ["cco", "node", "multiplayer"]
 }
