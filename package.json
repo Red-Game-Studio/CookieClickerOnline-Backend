@@ -24,5 +24,8 @@
     "cco",
     "node",
     "multiplayer"
-  ]
+  ],
+  "engines": {
+    "node": ">=16"
+  }
 }

@@ -13,7 +13,7 @@ function sanitiseUser(user: DiscordUser): DiscordUser {
 		avatar: user.avatar
 	};
 
-	return newUser
+	return newUser;
 }
 
 export async function getUserDetails(account: DiscordAccount): Promise<DiscordUser | undefined> {
